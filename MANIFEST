@@ -1,0 +1,6 @@
+MANIFEST
+README
+Makefile.PL
+Echo.pm
+t/1.t
+examples/simple-echo-server.pl
