@@ -1,6 +1,6 @@
 # $Id: Echo.pm,v 1.2 2005/01/26 14:39:33 chris Exp $
 #
-# POE::Component::Server::Echo, by Chris "BinGOs" Williams <chris@bingosnet.co.uk>
+# POE::Component::Server::Echo, by Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
 #
 # This module may be used, modified, and distributed under the same
 # terms as Perl itself. Please see the license that came with your Perl
@@ -18,8 +18,9 @@ use IO::Socket::INET;
 use vars qw($VERSION);
 
 use constant DATAGRAM_MAXLEN => 1024;
+use constant DEFAULT_PORT => 7;
 
-$VERSION = '0.9';
+$VERSION = '1.0';
 
 sub spawn {
   my ($package) = shift;
@@ -27,13 +28,9 @@ sub spawn {
 
   my %parms = @_;
 
-  # Set a default alias.
-
   $parms{'Alias'} = 'Echo-Server' unless ( defined ( $parms{'Alias'} ) and $parms{'Alias'} );
   $parms{'tcp'} = 1 unless ( defined ( $parms{'tcp'} ) and $parms{'tcp'} == 0 );
   $parms{'udp'} = 1 unless ( defined ( $parms{'udp'} ) and $parms{'udp'} == 0 );
-
-  # Everything else should be cool.
 
   my ($self) = bless( { }, $package );
 
@@ -60,7 +57,7 @@ sub server_start {
   if ( $self->{CONFIG}->{tcp} ) {
     $self->{Listener} = POE::Wheel::SocketFactory->new(
       ( defined ( $self->{CONFIG}->{BindAddress} ) ? ( BindAddress => $self->{CONFIG}->{BindAddress} ) : () ),
-      ( defined ( $self->{CONFIG}->{BindPort} ) ? ( BindPort => $self->{CONFIG}->{BindPort} ) : ( BindPort => 7 ) ),
+      ( defined ( $self->{CONFIG}->{BindPort} ) ? ( BindPort => $self->{CONFIG}->{BindPort} ) : ( BindPort => DEFAULT_PORT ) ),
       SuccessEvent   => 'accept_new_client',
       FailureEvent   => 'accept_failed',
       SocketDomain   => AF_INET,             # Sets the socket() domain
@@ -72,7 +69,7 @@ sub server_start {
   if ( $self->{CONFIG}->{udp} ) {
     $self->{udp_socket} = IO::Socket::INET->new(
         Proto     => 'udp',
-        ( defined ( $self->{CONFIG}->{BindPort} ) and $self->{CONFIG}->{BindPort} ? ( ListenPort => $self->{CONFIG}->{BindPort} ) : ( $self->{CONFIG}->{BindPort} != 0 ? ( ListenPort => 7 ) : () ) ),
+        ( defined ( $self->{CONFIG}->{BindPort} ) and $self->{CONFIG}->{BindPort} ? ( ListenPort => $self->{CONFIG}->{BindPort} ) : ( $self->{CONFIG}->{BindPort} != 0 ? ( ListenPort => DEFAULT_PORT ) : () ) ),
     ) or die "Can't bind : $@\n";
 
     $kernel->select_read( $self->{udp_socket}, "get_datagram" );
@@ -150,9 +147,11 @@ POE::Component::Server::Echo - a POE component implementing a RFC 862 Echo serve
 
 use POE::Component::Server::Echo;
 
-my ($self) = POE::Component::Server::Echo->spawn( Alias => 'Echo-Server',
-						  BindAddress => '127.0.0.1',
-						  BindPort => 7777,
+my ($self) = POE::Component::Server::Echo->spawn( 
+	Alias => 'Echo-Server',
+	BindAddress => '127.0.0.1',
+	BindPort => 7777,
+	options => { trace => 1 },
 );
 
 =head1 DESCRIPTION
@@ -166,7 +165,7 @@ L<POE|POE>. The component encapsulates a class which may be used to further RFC 
 
 =item spawn
 
-Takes a number of optional values: "Alias", the kernel alias that this component is to be blessed with; "BindAddress", the address on the local host to bind to, defaults to L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> default; "BindPort", the local port that we wish to listen on for requests, defaults to 7 as per RFC, this will require "root" privs on UN*X.
+Takes a number of optional values: "Alias", the kernel alias that this component is to be blessed with; "BindAddress", the address on the local host to bind to, defaults to L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> default; "BindPort", the local port that we wish to listen on for requests, defaults to 7 as per RFC, this will require "root" privs on UN*X; "options", should be a hashref, containing the options for the component's session, see L<POE::Session|POE::Session> for more details on what this should contain.
 
 =back
 
@@ -181,6 +180,7 @@ Chris 'BinGOs' Williams, <chris@bingosnet.co.uk>
 =head1 SEE ALSO
 
 L<POE|POE>
+L<POE::Session|POE::Session>
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory>
 L<http://www.faqs.org/rfcs/rfc862.html>
 
