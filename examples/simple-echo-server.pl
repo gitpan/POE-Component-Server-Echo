@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w
-
+use strict;
+use warnings;
 use POE qw(Component::Server::Echo);
 
 my ($object) = POE::Component::Server::Echo->spawn( Alias => 'Echo-Server', BindPort => 8090, options => { trace => 1 } );

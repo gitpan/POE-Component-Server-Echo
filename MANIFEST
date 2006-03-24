@@ -4,3 +4,4 @@ Makefile.PL
 Echo.pm
 t/1.t
 examples/simple-echo-server.pl
+META.yml                                 Module meta-data (added by MakeMaker)

@@ -1,4 +1,4 @@
-# $Id: Echo.pm,v 1.2 2005/01/26 14:39:33 chris Exp $
+# $Id: Echo.pm,v 1.3 2005/01/27 08:37:22 chris Exp $
 #
 # POE::Component::Server::Echo, by Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
 #
@@ -20,10 +20,10 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 sub spawn {
-  my ($package) = shift;
+  my $package = shift;
   croak "$package requires an even number of parameters" if @_ & 1;
 
   my %parms = @_;
@@ -32,7 +32,7 @@ sub spawn {
   $parms{'tcp'} = 1 unless ( defined ( $parms{'tcp'} ) and $parms{'tcp'} == 0 );
   $parms{'udp'} = 1 unless ( defined ( $parms{'udp'} ) and $parms{'udp'} == 0 );
 
-  my ($self) = bless( { }, $package );
+  my $self = bless( { }, $package );
 
   $self->{CONFIG} = \%parms;
 
@@ -74,42 +74,47 @@ sub server_start {
 
     $kernel->select_read( $self->{udp_socket}, "get_datagram" );
   }
+  undef;
 }
 
 sub server_stop {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
+  undef;
 }
 
 sub server_close {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  delete ( $self->{Listener} );
-  delete ( $self->{Clients} );
+  delete $self->{Listener};
+  delete $self->{Clients};
   $kernel->select( $self->{udp_socket} );
-  delete ( $self->{udp_socket} );
+  delete $self->{udp_socket};
   $kernel->alias_remove( $self->{CONFIG}->{Alias} );
+  undef;
 }
 
 sub accept_new_client {
   my ($kernel,$self,$socket,$peeraddr,$peerport,$wheel_id) = @_[KERNEL,OBJECT,ARG0 .. ARG3];
   $peeraddr = inet_ntoa($peeraddr);
 
-  my ($wheel) = POE::Wheel::ReadWrite->new (
+  my $wheel = POE::Wheel::ReadWrite->new (
         Handle => $socket,
         Filter => POE::Filter::Line->new(),
         InputEvent => 'client_input',
         ErrorEvent => 'client_error',
   );
 
-  $self->{Clients}->{ $wheel->ID() }->{Wheel} = $wheel;
-  $self->{Clients}->{ $wheel->ID() }->{peeraddr} = $peeraddr;
-  $self->{Clients}->{ $wheel->ID() }->{peerport} = $peerport;
+  my $wheel_id = $wheel->ID();
+  $self->{Clients}->{ $wheel_id }->{Wheel} = $wheel;
+  $self->{Clients}->{ $wheel_id }->{peeraddr} = $peeraddr;
+  $self->{Clients}->{ $wheel_id }->{peerport} = $peerport;
+  undef;
 }
 
 sub accept_failed {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-
   $kernel->yield( 'shutdown' );
+  undef;
 }
 
 sub client_input {
@@ -118,12 +123,13 @@ sub client_input {
   if ( defined ( $self->{Clients}->{ $wheel_id } ) and defined ( $self->{Clients}->{ $wheel_id }->{Wheel} ) ) {
 	$self->{Clients}->{ $wheel_id }->{Wheel}->put($input);
   }
+  undef;
 }
 
 sub client_error {
-  my ($kernel,$self,$wheel_id) = @_[KERNEL,OBJECT,ARG3];
-
-  delete ( $self->{Clients}->{ $wheel_id } );
+  my ($self,$wheel_id) = @_[OBJECT,ARG3];
+  delete $self->{Clients}->{ $wheel_id };
+  undef;
 }
 
 sub get_datagram {
@@ -134,6 +140,21 @@ sub get_datagram {
 
   send( $socket, $message, 0, $remote_address ) == length($message)
       or warn "Trouble sending response: $!";
+  undef;
+}
+
+sub sockname_tcp {
+  my $self = shift;
+  my $name;
+  $name =  $self->{Listener}->getsockname() if $self->{CONFIG}->{tcp};
+  return unless $name;
+  return sockaddr_in($name);
+}
+
+sub sockname_udp {
+  my $self = shift;
+  return unless $self->{CONFIG}->{udp} and $self->{udp_socket};
+  return ( $self->{udp_socket}->sockport(), $self->{udp_socket}->sockaddr() );
 }
 
 1;
@@ -145,27 +166,59 @@ POE::Component::Server::Echo - a POE component implementing a RFC 862 Echo serve
 
 =head1 SYNOPSIS
 
-use POE::Component::Server::Echo;
+  use POE::Component::Server::Echo;
 
-my ($self) = POE::Component::Server::Echo->spawn( 
+  my $self = POE::Component::Server::Echo->spawn( 
 	Alias => 'Echo-Server',
 	BindAddress => '127.0.0.1',
 	BindPort => 7777,
 	options => { trace => 1 },
-);
+  );
 
 =head1 DESCRIPTION
 
 POE::Component::Server::Echo implements a RFC 862 L<http://www.faqs.org/rfcs/rfc862.html> TCP/UDP echo server, using 
-L<POE|POE>. The component encapsulates a class which may be used to further RFC protocols.
+L<POE|POE>. The component encapsulates a class which may be used to implement further RFC protocols.
 
-=head1 METHODS
+=head1 CONSTRUCTOR
 
 =over
 
 =item spawn
 
-Takes a number of optional values: "Alias", the kernel alias that this component is to be blessed with; "BindAddress", the address on the local host to bind to, defaults to L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> default; "BindPort", the local port that we wish to listen on for requests, defaults to 7 as per RFC, this will require "root" privs on UN*X; "options", should be a hashref, containing the options for the component's session, see L<POE::Session|POE::Session> for more details on what this should contain.
+Takes a number of optional values: 
+
+  "Alias", the kernel alias that this component is to be blessed with; 
+  "BindAddress", the address on the local host to bind to, 
+	defaults to L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> default; 
+  "BindPort", the local port that we wish to listen on for requests, 
+        defaults to 7 as per RFC, this will require "root" privs on UN*X; 
+  "options", should be a hashref, containing the options for the component's session, 
+        see POE::Session for more details on what this should contain.
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item sockname_tcp
+
+Takes no arguments. Returns a list consisting of the socket port and address of the TCP listening socket as returned by Socket's sockaddr_in function.
+
+=item sockname_udp
+
+Takes no arguments. Returns a list consisting of the socket port and address of the UDP listening socket as returned by Socket's sockaddr_in function.
+
+=back
+
+=head1 INPUT EVENTS
+
+=over
+
+=item shutdown
+
+Takes no arguments. Shuts down the component gracefully, terminating all listeners and disconnecting all connected clients.
 
 =back
 
