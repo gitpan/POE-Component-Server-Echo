@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 sub spawn {
   my $package = shift;
@@ -72,7 +72,7 @@ sub _server_start {
         ( defined ( $self->{CONFIG}->{BindPort} ) and $self->{CONFIG}->{BindPort} ? ( ListenPort => $self->{CONFIG}->{BindPort} ) : ( $self->{CONFIG}->{BindPort} != 0 ? ( ListenPort => DEFAULT_PORT ) : () ) ),
     ) or die "Can't bind : $@\n";
 
-    $kernel->select_read( $self->{udp_socket}, "get_datagram" );
+    $kernel->select_read( $self->{udp_socket}, "_get_datagram" );
   }
   undef;
 }
