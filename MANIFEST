@@ -1,7 +1,10 @@
 MANIFEST
+Changes
 README
 Makefile.PL
-Echo.pm
+lib/POE/Component/Server/Echo.pm
 t/1.t
+t/2.t
+t/3.t
 examples/simple-echo-server.pl
 META.yml                                 Module meta-data (added by MakeMaker)

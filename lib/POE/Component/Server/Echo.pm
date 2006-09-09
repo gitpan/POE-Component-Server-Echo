@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.1';
+$VERSION = '1.2';
 
 sub spawn {
   my $package = shift;
@@ -38,10 +38,10 @@ sub spawn {
 
   POE::Session->create(
 	object_states => [ 
-		$self => { _start => 'server_start',
-			   _stop  => 'server_stop',
-			   shutdown => 'server_close' },
-		$self => [ qw(accept_new_client accept_failed client_input client_error get_datagram) ],
+		$self => { _start => '_server_start',
+			   _stop  => '_server_stop',
+			   shutdown => '_server_close' },
+		$self => [ qw(_accept_new_client _accept_failed _client_input _client_error _get_datagram) ],
 			  ],
 	( ref $parms{'options'} eq 'HASH' ? ( options => $parms{'options'} ) : () ),
   );
@@ -49,7 +49,7 @@ sub spawn {
   return $self;
 }
 
-sub server_start {
+sub _server_start {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->alias_set( $self->{CONFIG}->{Alias} );
@@ -58,8 +58,8 @@ sub server_start {
     $self->{Listener} = POE::Wheel::SocketFactory->new(
       ( defined ( $self->{CONFIG}->{BindAddress} ) ? ( BindAddress => $self->{CONFIG}->{BindAddress} ) : () ),
       ( defined ( $self->{CONFIG}->{BindPort} ) ? ( BindPort => $self->{CONFIG}->{BindPort} ) : ( BindPort => DEFAULT_PORT ) ),
-      SuccessEvent   => 'accept_new_client',
-      FailureEvent   => 'accept_failed',
+      SuccessEvent   => '_accept_new_client',
+      FailureEvent   => '_accept_failed',
       SocketDomain   => AF_INET,             # Sets the socket() domain
       SocketType     => SOCK_STREAM,         # Sets the socket() type
       SocketProtocol => 'tcp',               # Sets the socket() protocol
@@ -77,12 +77,12 @@ sub server_start {
   undef;
 }
 
-sub server_stop {
+sub _server_stop {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   undef;
 }
 
-sub server_close {
+sub _server_close {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   delete $self->{Listener};
@@ -93,15 +93,15 @@ sub server_close {
   undef;
 }
 
-sub accept_new_client {
+sub _accept_new_client {
   my ($kernel,$self,$socket,$peeraddr,$peerport,$wheel_id) = @_[KERNEL,OBJECT,ARG0 .. ARG3];
   $peeraddr = inet_ntoa($peeraddr);
 
   my $wheel = POE::Wheel::ReadWrite->new (
         Handle => $socket,
         Filter => POE::Filter::Line->new(),
-        InputEvent => 'client_input',
-        ErrorEvent => 'client_error',
+        InputEvent => '_client_input',
+        ErrorEvent => '_client_error',
   );
 
   my $wheel_id = $wheel->ID();
@@ -111,13 +111,13 @@ sub accept_new_client {
   undef;
 }
 
-sub accept_failed {
+sub _accept_failed {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   $kernel->yield( 'shutdown' );
   undef;
 }
 
-sub client_input {
+sub _client_input {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   if ( defined ( $self->{Clients}->{ $wheel_id } ) and defined ( $self->{Clients}->{ $wheel_id }->{Wheel} ) ) {
@@ -126,13 +126,13 @@ sub client_input {
   undef;
 }
 
-sub client_error {
+sub _client_error {
   my ($self,$wheel_id) = @_[OBJECT,ARG3];
   delete $self->{Clients}->{ $wheel_id };
   undef;
 }
 
-sub get_datagram {
+sub _get_datagram {
   my ( $kernel, $socket ) = @_[ KERNEL, ARG0 ];
 
   my $remote_address = recv( $socket, my $message = "", DATAGRAM_MAXLEN, 0 );
