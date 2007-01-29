@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.4';
+$VERSION = '1.50';
 
 sub spawn {
   my $package = shift;
@@ -28,9 +28,9 @@ sub spawn {
 
   my %parms = @_;
 
-  $parms{'Alias'} = 'Echo-Server' unless ( defined ( $parms{'Alias'} ) and $parms{'Alias'} );
-  $parms{'tcp'} = 1 unless ( defined ( $parms{'tcp'} ) and $parms{'tcp'} == 0 );
-  $parms{'udp'} = 1 unless ( defined ( $parms{'udp'} ) and $parms{'udp'} == 0 );
+  $parms{'Alias'} = 'Echo-Server' unless defined $parms{'Alias'} and $parms{'Alias'};
+  $parms{'tcp'} = 1 unless defined $parms{'tcp'} and $parms{'tcp'} == 0;
+  $parms{'udp'} = 1 unless defined $parms{'udp'} and $parms{'udp'} == 0;
 
   my $self = bless( { }, $package );
 

@@ -1,6 +1,10 @@
 POE::Component::Server::Echo
 ============================
 
+1.50	Mon Jan 29 18:16:05 GMT 2006
+	- Minor code refactor.
+	- Switched Makefile.PL completely to M::I.
+
 1.4	Tue Sep 26 12:28:56 BST 2006
 	- Switched to Module::Install
 
