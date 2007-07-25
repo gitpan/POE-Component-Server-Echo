@@ -3,6 +3,8 @@ name 'POE-Component-Server-Echo';
 author 'Chris Williams <chris@bingosnet.co.uk>';
 license 'perl';
 version_from 'lib/POE/Component/Server/Echo.pm';
+abstract_from 'lib/POE/Component/Server/Echo.pm';
+build_requires 'Test::More' => 0.47;
 requires 'Carp'   => 0;
 requires 'Socket' => 0;
 requires 'POE' => 0.38;

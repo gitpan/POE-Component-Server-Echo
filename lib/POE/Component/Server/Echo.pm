@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.51';
+$VERSION = '1.52';
 
 sub spawn {
   my $package = shift;
@@ -162,7 +162,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::Server::Echo - a POE component implementing a RFC 862 Echo server.
+POE::Component::Server::Echo - A POE component that implements an RFC 862 Echo server.
 
 =head1 SYNOPSIS
 
