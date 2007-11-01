@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.52';
+$VERSION = '1.53';
 
 sub spawn {
   my $package = shift;
