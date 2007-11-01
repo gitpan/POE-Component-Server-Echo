@@ -1,6 +1,10 @@
 POE::Component::Server::Echo
 ============================
 
+1.54	Thu Nov  1 12:12:08 GMT 2007
+	- Fixed pod coverage test to stop wacky 5.9.* fail reports
+	  reported by Andreas Koenig.
+
 1.53	Thu Nov  1 09:44:59 GMT 2007
 	- Updated Module::Install to 0.68
 
