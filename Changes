@@ -1,6 +1,9 @@
 POE::Component::Server::Echo
 ============================
 
+1.56	Fri Jan 11 11:18:39 GMT 2008
+	- Tidied up testsuite naming
+
 1.54	Thu Nov  1 12:12:08 GMT 2007
 	- Fixed pod coverage test to stop wacky 5.9.* fail reports
 	  reported by Andreas Koenig.
