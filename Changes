@@ -1,6 +1,9 @@
 POE::Component::Server::Echo
 ============================
 
+1.58	Thu Jan 17 12:52:09 GMT 2008
+	- Fixed UDP support. Added UDP test.
+
 1.56	Fri Jan 11 11:18:39 GMT 2008
 	- Tidied up testsuite naming
 

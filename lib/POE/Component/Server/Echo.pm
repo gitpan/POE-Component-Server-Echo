@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.56';
+$VERSION = '1.58';
 
 sub spawn {
   my $package = shift;
@@ -67,11 +67,12 @@ sub _server_start {
     );
   }
   if ( $self->{CONFIG}->{udp} ) {
-    $self->{udp_socket} = IO::Socket::INET->new(
-        Proto     => 'udp',
-        ( defined ( $self->{CONFIG}->{BindPort} ) and $self->{CONFIG}->{BindPort} ? ( ListenPort => $self->{CONFIG}->{BindPort} ) : ( $self->{CONFIG}->{BindPort} != 0 ? ( ListenPort => DEFAULT_PORT ) : () ) ),
-    ) or die "Can't bind : $@\n";
-
+    my $proto = getprotobyname('udp');
+    my $port = defined ( $self->{CONFIG}->{BindPort} ) ? $self->{CONFIG}->{BindPort} : DEFAULT_PORT;
+    my $paddr = sockaddr_in($port, INADDR_ANY);
+    socket( my $socket, PF_INET, SOCK_DGRAM, $proto)   || die "socket: $!";
+    bind( $socket, $paddr)                          || die "bind: $!";
+    $self->{udp_socket} = $socket;
     $kernel->select_read( $self->{udp_socket}, "_get_datagram" );
   }
   undef;
@@ -154,7 +155,7 @@ sub sockname_tcp {
 sub sockname_udp {
   my $self = shift;
   return unless $self->{CONFIG}->{udp} and $self->{udp_socket};
-  return ( $self->{udp_socket}->sockport(), $self->{udp_socket}->sockaddr() );
+  return sockaddr_in( getsockname $self->{udp_socket} );
 }
 
 1;
