@@ -10,6 +10,7 @@
 package POE::Component::Server::Echo;
 
 use strict;
+use warnings;
 use POE qw( Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
             Filter::Line );
 use Carp;
@@ -20,7 +21,7 @@ use vars qw($VERSION);
 use constant DATAGRAM_MAXLEN => 1024;
 use constant DEFAULT_PORT => 7;
 
-$VERSION = '1.58';
+$VERSION = '1.60';
 
 sub spawn {
   my $package = shift;
@@ -95,7 +96,7 @@ sub _server_close {
 }
 
 sub _accept_new_client {
-  my ($kernel,$self,$socket,$peeraddr,$peerport,$wheel_id) = @_[KERNEL,OBJECT,ARG0 .. ARG3];
+  my ($kernel,$self,$socket,$peeraddr,$peerport) = @_[KERNEL,OBJECT,ARG0 .. ARG2];
   $peeraddr = inet_ntoa($peeraddr);
 
   my $wheel = POE::Wheel::ReadWrite->new (

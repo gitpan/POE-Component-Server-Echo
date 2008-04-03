@@ -1,6 +1,9 @@
 POE::Component::Server::Echo
 ============================
 
+1.60	Thu Apr  3 12:31:46 BST 2008
+	- Kwalitee fixes.
+
 1.58	Thu Jan 17 12:52:09 GMT 2008
 	- Fixed UDP support. Added UDP test.
 
