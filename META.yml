@@ -5,7 +5,7 @@ author:
 build_requires:
   Test::More: 0.47
 distribution_type: module
-generated_by: 'Module::Install version 0.71'
+generated_by: 'Module::Install version 0.75'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
@@ -15,6 +15,8 @@ no_index:
   directory:
     - inc
     - t
+    - examples
+    - examples
 requires:
   Carp: 0
   IO::Socket::INET: 0
@@ -24,4 +26,4 @@ requires:
   POE::Wheel::ReadWrite: 0
   POE::Wheel::SocketFactory: 0
   Socket: 0
-version: 1.60
+version: 1.62
